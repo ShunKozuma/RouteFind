@@ -5,13 +5,33 @@ import android.os.Bundle
 import jp.co.yahoo.android.maps.GeoPoint
 import jp.co.yahoo.android.maps.MapActivity
 import jp.co.yahoo.android.maps.MapView
+import jp.co.yahoo.android.maps.ar.ARControllerListener
 import jp.co.yahoo.android.maps.navi.NaviController
 import jp.co.yahoo.android.maps.routing.RouteOverlay
+import jp.co.yahoo.android.maps.ar.ARController
+import android.view.WindowManager
+import android.content.pm.ActivityInfo
+import jp.co.yahoo.android.maps.MyLocationOverlay
 
-class MainActivity : MapActivity(), RouteOverlay.RouteOverlayListener, NaviController.NaviControllerListener {
+
+
+
+
+class MainActivity : MapActivity(), RouteOverlay.RouteOverlayListener, NaviController.NaviControllerListener,
+    ARControllerListener {
+    override fun ARControllerListenerOnPOIPick(p0: Int) {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    }
 
 
     private lateinit var naviController: NaviController
+
+    private lateinit var arController: ARController
+
+    private var _overlay: MyLocationOverlay? = null
+
+    private  var p: GeoPoint = GeoPoint(0,0)//現在地の取得
+
 
     override fun isRouteDisplayed(): Boolean {
         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
@@ -40,6 +60,21 @@ class MainActivity : MapActivity(), RouteOverlay.RouteOverlayListener, NaviContr
 
         //案内処理を開始
         naviController.start()
+
+
+        //横向き固定
+        this.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
+        this.window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
+        //ARControllerインスタンス作成
+        arController = ARController(this, this)
+
+        //ARControllerをNaviControllerに設定
+        naviController.setARController(arController)
+
+        //案内処理を開始
+        naviController.start()
+        
         return false
     }
 
@@ -79,6 +114,16 @@ class MainActivity : MapActivity(), RouteOverlay.RouteOverlayListener, NaviContr
 
     //目的地に到着した場合
     override fun onGoal(arg0: NaviController): Boolean {
+
+        //ARの停止処理
+        arController.onPause();
+
+        //案内処理を継続しない場合は停止させる
+        naviController.stop();
+
+        //ARControllerをNaviControllerから削除
+        naviController.setARController(null);
+
         //案内処理を継続しない場合は停止させる
         naviController.stop()
         return false
@@ -101,6 +146,32 @@ class MainActivity : MapActivity(), RouteOverlay.RouteOverlayListener, NaviContr
         setContentView(mapView)
 
 
+        mapView.setBuiltInZoomControls(true)
+        mapView.setScalebar(true)
+
+        /*
+
+        //MyLocationOverlayインスタンス作成
+        _overlay = MyLocationOverlay(applicationContext, mapView)
+
+        //現在位置取得開始
+        _overlay!!.enableMyLocation()
+
+        //位置が更新されると、地図の位置も変わるよう設定
+        _overlay!!.runOnFirstFix(Runnable {
+            if (mapView.mapController != null) {
+                //現在位置を取得
+                val p = _overlay!!.myLocation
+                //地図移動
+                mapView.mapController.animateTo(p)
+            }
+        })
+
+        //MapViewにMyLocationOverlayを追加。
+        mapView.overlays.add(_overlay)
+
+        setContentView(mapView)
+        */
 
         /*
         //ポインタを表示
@@ -109,6 +180,7 @@ class MainActivity : MapActivity(), RouteOverlay.RouteOverlayListener, NaviContr
         val pinOverlay = PinOverlay(PinOverlay.PIN_VIOLET)
         mapView.overlays.add(pinOverlay)
         pinOverlay.addPoint(mid, null)
+
 
 
         //ポップアップの表示
@@ -177,8 +249,61 @@ class MainActivity : MapActivity(), RouteOverlay.RouteOverlayListener, NaviContr
         mapView.overlays.add(labelTouchOverlay)
 
 
-*/
         //指定したルートを表示
+        //RouteOverlay作成
+        val routeOverlay = RouteOverlay(this, "dj0zaiZpPWowWHRab050ODJyTyZzPWNvbnN1bWVyc2VjcmV0Jng9MzY-")
+
+        //出発地ピンの吹き出し設定
+        routeOverlay.setStartTitle("ミッドタウン")
+
+        //目的地ピンの吹き出し設定
+        routeOverlay.setGoalTitle("東京タワー")
+
+        //出発地、目的地、移動手段を設定
+        routeOverlay.setRoutePos(
+            GeoPoint(35659151, 139703504),
+            GeoPoint(35659007, 139705427),
+            RouteOverlay.TRAFFIC_WALK
+        )
+
+
+        //RouteOverlayListenerの設定
+        routeOverlay.setRouteOverlayListener(this)
+
+
+        //検索を開始
+        routeOverlay.search()
+
+        //MapViewにRouteOverlayを追加
+        mapView.overlays.add(routeOverlay)
+
+        */
+
+        /*
+
+
+        //MyLocationOverlayインスタンス作成
+        _overlay = MyLocationOverlay(applicationContext, mapView)
+
+        //現在位置取得開始
+        _overlay!!.enableMyLocation()
+
+        //位置が更新されると、地図の位置も変わるよう設定
+        _overlay!!.runOnFirstFix(Runnable {
+            if (mapView.mapController != null) {
+                //現在位置を取得
+                p = _overlay!!.myLocation
+                //地図移動
+                mapView.mapController.animateTo(p)
+            }
+        })
+
+        //MapViewにMyLocationOverlayを追加。
+        mapView.overlays.add(_overlay)
+
+*/
+
+
         //RouteOverlay作成
         val routeOverlay = RouteOverlay(this, "dj0zaiZpPWowWHRab050ODJyTyZzPWNvbnN1bWVyc2VjcmV0Jng9MzY-")
 
@@ -199,12 +324,14 @@ class MainActivity : MapActivity(), RouteOverlay.RouteOverlayListener, NaviContr
         //RouteOverlayListenerの設定
         routeOverlay.setRouteOverlayListener(this)
 
-
         //検索を開始
         routeOverlay.search()
 
+
+
         //MapViewにRouteOverlayを追加
         mapView.overlays.add(routeOverlay)
+
 
 
     }
