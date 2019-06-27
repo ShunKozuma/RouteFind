@@ -11,6 +11,7 @@ import jp.co.yahoo.android.maps.routing.RouteOverlay
 import jp.co.yahoo.android.maps.ar.ARController
 import android.view.WindowManager
 import android.content.pm.ActivityInfo
+import android.widget.Button
 import jp.co.yahoo.android.maps.MyLocationOverlay
 
 
@@ -74,7 +75,7 @@ class MainActivity : MapActivity(), RouteOverlay.RouteOverlayListener, NaviContr
 
         //案内処理を開始
         naviController.start()
-        
+
         return false
     }
 
@@ -148,6 +149,7 @@ class MainActivity : MapActivity(), RouteOverlay.RouteOverlayListener, NaviContr
 
         mapView.setBuiltInZoomControls(true)
         mapView.setScalebar(true)
+
 
         /*
 
@@ -281,7 +283,6 @@ class MainActivity : MapActivity(), RouteOverlay.RouteOverlayListener, NaviContr
 
         /*
 
-
         //MyLocationOverlayインスタンス作成
         _overlay = MyLocationOverlay(applicationContext, mapView)
 
@@ -315,8 +316,8 @@ class MainActivity : MapActivity(), RouteOverlay.RouteOverlayListener, NaviContr
 
         //出発地、目的地、移動手段を設定
         routeOverlay.setRoutePos(
-            GeoPoint(35665721, 139731005),
-            GeoPoint(35658630, 139745410),
+            GeoPoint(35658826, 139705511),
+            GeoPoint(35658036, 139699446),
             RouteOverlay.TRAFFIC_WALK
         )
 
